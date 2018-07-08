@@ -51,4 +51,16 @@ class DeviceEntry
         return false;
     }
 
+    public function delete()
+    {
+        $query = "DELETE FROM " . $this->table_name . " WHERE entry_id = ?";
+        $stmt = $this->conn->prepare($query);
+        $this->entry_id = htmlspecialchars(strip_tags($this->entry_id));
+        $stmt->bindParam(1, $this->entry_id);
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
 }

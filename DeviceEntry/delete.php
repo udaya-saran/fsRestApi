@@ -6,22 +6,22 @@ header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
 require_once '../Config/Database.php';
-require_once '../Objects/Device.php';
+require_once '../Objects/DeviceEntry.php';
 
 use FsRestApi\Config\Database;
-use FsRestApi\Objects\Device;
+use FsRestApi\Objects\DeviceEntry;
 
 $database = new Database();
 $db = $database->getConnection();
 
-$device = new Device($db);
+$deviceEntry = new DeviceEntry($db);
 $data = json_decode(file_get_contents("php://input"));
-$device->id = $data->id;
+$deviceEntry->entry_id = $data->entry_id;
 
 $result = [];
-$result['message'] = 'Selected device not found.';
-if (!empty($device->id) && $device->id > 0) {
-    $result['message'] = ($device->delete()) ? 'Device was deleted successfully.' : 'Unable to delete device.';
+$result['message'] = 'Selected device entry not found.';
+if (!empty($deviceEntry->entry_id) && $deviceEntry->entry_id > 0) {
+    $result['message'] = ($deviceEntry->delete()) ? 'Device entry was deleted successfully.' : 'Unable to delete device entry.';
 }
 
 echo json_encode($result);
