@@ -7,7 +7,10 @@ class Device
 
     private $conn;
     private $table_name = "device";
- 
+    private $fields = ["id", "label", "created_at", "modified_at"];
+    public $order_by_field;
+    public $order_by;
+
     public $id;
     public $label;
     public $created_at;
@@ -18,35 +21,21 @@ class Device
         $this->conn = $db;
     }
 
-    public function read()
+    public function read($fromRecordNum = 0, $recordsPerPage = 5, $orderByField = "label", $orderBy = "ASC")
     {
-        $query = "SELECT d.id, d.label, d.created_at, d.modified_at "
-                . "FROM " . $this->table_name . " d ORDER BY d.label";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt;
-    }
-
-    public function readLastReported()
-    {
-        $query = "SELECT d.id, d.label, "
+        $this->order_by = (empty($orderBy) || $orderBy != "DESC") ? 
+                "ASC" : $orderBy;
+        $this->order_by_field = (!empty($orderByField)) ? 
+                (in_array($orderByField, $this->fields) ? 
+                    "d." . $orderByField : $orderByField) 
+                : "d.label";
+        $query = "SELECT SQL_CALC_FOUND_ROWS d.id, d.label, "
+                . "d.created_at, d.modified_at, "
                 . "MAX(de.reported_at) as last_reported_at, de.latitude, "
-                . "de.longitude FROM " . $this->table_name . " d LEFT JOIN "
+                . "de.longitude FROM ".$this->table_name." d LEFT JOIN "
                 . "device_entry de ON d.id = de.device_id "
-                . "GROUP BY d.id ORDER BY d.label";
-        $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-        return $stmt;
-    }
-    
-    public function readPaging($fromRecordNum = 0, $recordsPerPage = 5)
-    {
-        $query = "SELECT d.id, d.label, "
-                . "MAX(de.reported_at) as last_reported_at, de.latitude, "
-                . "de.longitude FROM " . $this->table_name . " d LEFT JOIN "
-                . "device_entry de ON d.id = de.device_id "
-                . "GROUP BY d.id ORDER BY d.label "
-                . "LIMIT ?, ?";
+                . "GROUP BY d.id ORDER BY " . $this->order_by_field . " "
+                . $this->order_by . " LIMIT ?, ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $fromRecordNum, \PDO::PARAM_INT);
         $stmt->bindParam(2, $recordsPerPage, \PDO::PARAM_INT);
@@ -54,16 +43,21 @@ class Device
         return $stmt;
     }
 
-    public function totalCount()
+    public function foundRows()
     {
-        $query = "SELECT COUNT(*) AS totalCount FROM " . $this->table_name . "";
+        $query = "SELECT FOUND_ROWS() as totalCount";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        if ($stmt->rowCount()) {
-            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-            return $row['totalCount'];
-        }
-        return 0;
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row['totalCount'];
+    }
+
+    public function readAll()
+    {
+        $query = "SELECT id, label FROM device";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt;
     }
 
     public function create()
@@ -83,19 +77,6 @@ class Device
             return true;
         }
         return false;
-    }
-
-    public function readOne()
-    {
-        $query = "SELECT d.id, d.label, "
-                . "MAX(de.reported_at) as last_reported_at, de.latitude, "
-                . "de.longitude FROM " . $this->table_name . " d LEFT JOIN "
-                . "device_entry de ON d.id = de.device_id "
-                . "WHERE d.id = ? LIMIT 0, 1";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(1, $this->id);
-        $stmt->execute();
-        return $stmt;
     }
 
     public function update()
@@ -126,22 +107,6 @@ class Device
             return true;
         }
         return false;
-    }
-
-    public function search($keyword = "")
-    {
-        $query = "SELECT d.id, d.label, "
-                . "MAX(de.reported_at) as last_reported_at, de.latitude, "
-                . "de.longitude FROM " . $this->table_name . " d LEFT JOIN "
-                . "device_entry de ON d.id = de.device_id "
-                . "WHERE d.label LIKE ? "
-                . "GROUP BY d.id ORDER BY d.label";
-        $stmt = $this->conn->prepare($query);
-        $keyword = htmlspecialchars(strip_tags($keyword));
-        $keyword = "%{$keyword}%";
-        $stmt->bindParam(1, $keyword);
-        $stmt->execute();
-        return($stmt);
     }
 
 }

@@ -4,17 +4,20 @@ namespace FsRestApi\Config;
 
 class Core
 {
-    public static $homeUrl = "http://localhost/fsRestApi/";
-    public static $recordsPerPage = 5;
-    public $page = 1;
-    public $fromRecordNum = 0;
-
-    public function setPage($page = 1)
+    public $recordsPerPage;
+    public $page;
+    public $fromRecordNum;
+    
+    public function __construct()
     {
-        $this->page = (int) $page;
-        if ($this->page > 1) {
-            $this->fromRecordNum = (int) ((self::$recordsPerPage * $this->page) - self::$recordsPerPage);
-        }
+        $this->setPaging();
+    }
+
+    public function setPaging($page = 1, $rpp = 5)
+    {
+        $this->page = ($page > 0) ? $page : 1;
+        $this->recordsPerPage = ($rpp > 0) ? $rpp : 5;
+        $this->fromRecordNum = (int) (($this->recordsPerPage * $this->page) - $this->recordsPerPage);
     }
 
 }
