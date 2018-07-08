@@ -17,7 +17,7 @@ $db = $database->getConnection();
 $device = new Device($db);
 $data = json_decode(file_get_contents("php://input"));
 $device->label = $data->label;
-$device->created_at = date('Y-m-d H:i:s');
+$device->created_at = gmdate('Y-m-d H:i:s');
 $device->modified_at = $device->created_at;
 
 $message = 'Please provide valid inputs.';

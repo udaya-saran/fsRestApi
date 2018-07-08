@@ -45,7 +45,29 @@ class DeviceEntry
         $stmt->bindParam(":latitude", $this->latitude);
         $stmt->bindParam(":longitude", $this->longitude);
         $stmt->bindParam(":reported_at", $this->reported_at);
-        if ($stmt->execute()) {
+        $stmt->execute();
+        if ($stmt->rowCount()) {
+            return true;
+        }
+        return false;
+    }
+
+    public function update()
+    {
+        $query = "UPDATE " . $this->table_name . " SET device_id=:device_id, "
+                . "latitude=:latitude, longitude=:longitude "
+                . "WHERE entry_id=:entry_id";
+        $stmt = $this->conn->prepare($query);
+        $this->device_id = htmlspecialchars(strip_tags($this->device_id));
+        $this->latitude = htmlspecialchars(strip_tags($this->latitude));
+        $this->longitude = htmlspecialchars(strip_tags($this->longitude));
+        $this->entry_id = htmlspecialchars(strip_tags($this->entry_id));
+        $stmt->bindParam(":device_id", $this->device_id);
+        $stmt->bindParam(":latitude", $this->latitude);
+        $stmt->bindParam(":longitude", $this->longitude);
+        $stmt->bindParam(":entry_id", $this->entry_id);
+        $stmt->execute();
+        if ($stmt->rowCount()) {
             return true;
         }
         return false;
@@ -57,7 +79,8 @@ class DeviceEntry
         $stmt = $this->conn->prepare($query);
         $this->entry_id = htmlspecialchars(strip_tags($this->entry_id));
         $stmt->bindParam(1, $this->entry_id);
-        if ($stmt->execute()) {
+        $stmt->execute();
+        if ($stmt->rowCount()) {
             return true;
         }
         return false;

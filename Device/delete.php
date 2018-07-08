@@ -18,10 +18,9 @@ $device = new Device($db);
 $data = json_decode(file_get_contents("php://input"));
 $device->id = $data->id;
 
-$result = [];
-$result['message'] = 'Selected device not found.';
+$message = 'Selected device not found.';
 if (!empty($device->id) && $device->id > 0) {
-    $result['message'] = ($device->delete()) ? 'Device was deleted successfully.' : 'Unable to delete device.';
+    $message = ($device->delete()) ? 'Device was deleted successfully.' : 'Unable to delete device.';
 }
 
-echo json_encode($result);
+echo json_encode(["message" => $message]);

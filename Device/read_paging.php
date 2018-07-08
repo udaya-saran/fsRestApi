@@ -39,6 +39,7 @@ if ($num > 0) {
     }
 
     $totalRows = $device->totalCount();
+    $devices_arr["totalCount"] = $totalRows;
     $pageUrl = Core::$homeUrl . "Device/read_paging.php?";
     $devices_arr["paging"] = $utilitiesObj->getPaging($coreObj->page, $totalRows, Core::$recordsPerPage, $pageUrl);
 }

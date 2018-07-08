@@ -59,8 +59,11 @@ class Device
         $query = "SELECT COUNT(*) AS totalCount FROM " . $this->table_name . "";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $row['totalCount'];
+        if ($stmt->rowCount()) {
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $row['totalCount'];
+        }
+        return 0;
     }
 
     public function create()
@@ -75,7 +78,8 @@ class Device
         $stmt->bindParam(":label", $this->label);
         $stmt->bindParam(":created_at", $this->created_at);
         $stmt->bindParam(":modified_at", $this->modified_at);
-        if ($stmt->execute()) {
+        $stmt->execute();
+        if ($stmt->rowCount()) {
             return true;
         }
         return false;
@@ -96,13 +100,16 @@ class Device
 
     public function update()
     {
-        $query = "UPDATE " . $this->table_name . " SET label=:label "
+        $query = "UPDATE " . $this->table_name . " SET label=:label, "
+                . "modified_at=:modified_at "
                 . "WHERE id=:id";
         $stmt = $this->conn->prepare($query);
         $this->label = htmlspecialchars(strip_tags($this->label));
         $stmt->bindParam(":label", $this->label);
+        $stmt->bindParam(":modified_at", $this->modified_at);
         $stmt->bindParam(":id", $this->id);
-        if ($stmt->execute()) {
+        $stmt->execute();
+        if ($stmt->rowCount()) {
             return true;
         }
         return false;
@@ -114,7 +121,8 @@ class Device
         $stmt = $this->conn->prepare($query);
         $this->id = htmlspecialchars(strip_tags($this->id));
         $stmt->bindParam(1, $this->id);
-        if ($stmt->execute()) {
+        $stmt->execute();
+        if ($stmt->rowCount()) {
             return true;
         }
         return false;

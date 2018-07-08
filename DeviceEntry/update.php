@@ -1,4 +1,5 @@
 <?php
+// required headers
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST");
@@ -17,10 +18,16 @@ $db = $database->getConnection();
 $deviceEntry = new DeviceEntry($db);
 $data = json_decode(file_get_contents("php://input"));
 $deviceEntry->entry_id = $data->entry_id;
+$deviceEntry->device_id = $data->device_id;
+$deviceEntry->latitude = $data->latitude;
+$deviceEntry->longitude = $data->longitude;
 
-$message = 'Selected device entry not found.';
-if (!empty($deviceEntry->entry_id) && $deviceEntry->entry_id > 0) {
-    $message = ($deviceEntry->delete()) ? 'Device entry was deleted successfully.' : 'Unable to delete device entry.';
+$message = 'Please provide valid inputs.';
+if (!empty($deviceEntry->entry_id) && !empty($deviceEntry->device_id) && 
+        !empty($deviceEntry->latitude) && !empty($deviceEntry->longitude)) {
+    $message = ($deviceEntry->update()) ? 
+            "Device entry was updated successfully." : 
+            "Unable to update device entry.";
 }
 
 echo json_encode(["message" => $message]);

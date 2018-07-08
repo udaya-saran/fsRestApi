@@ -19,6 +19,7 @@ $device = new Device($db);
 $data = json_decode(file_get_contents("php://input"));
 $device->id = $data->id;
 $device->label = $data->label;
+$device->modified_at = gmdate('Y-m-d H:i:s');
 
 $message = 'Please provide valid inputs.';
 if (!empty($device->label) && !empty($device->id)) {

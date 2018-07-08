@@ -19,7 +19,7 @@ $data = json_decode(file_get_contents("php://input"));
 $deviceEntry->device_id = $data->device_id;
 $deviceEntry->latitude = $data->latitude;
 $deviceEntry->longitude = $data->longitude;
-$deviceEntry->reported_at = date('Y-m-d H:i:s');
+$deviceEntry->reported_at = gmdate('Y-m-d H:i:s');
 
 $message = 'Please provide valid inputs.';
 if (!empty($deviceEntry->device_id) && !empty($deviceEntry->latitude) && !empty($deviceEntry->longitude)) {
