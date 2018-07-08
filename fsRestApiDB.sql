@@ -20,5 +20,18 @@ CREATE TABLE `device_entry` (
   CONSTRAINT `device_entry_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `user` (
+  `user_id` int(11) NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(32) NOT NULL,
+  `last_name` varchar(32) NOT NULL,
+  `user_email` varchar(128) NOT NULL,
+  `user_pass` varchar(128) NOT NULL,
+  `time_zone` varchar(64) NOT NULL,
+  `approved` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL,
+  `modified_at` datetime NOT NULL,
+  PRIMARY KEY (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
+INSERT INTO `user` (`first_name`, `last_name`, `user_email`, `user_pass`, `time_zone`, `approved`, `created_at`, `modified_at`) 
+VALUES ('Admin', 'User', 'admin@fsRestApi.com', '0e7517141fb53f21ee439b355b5a1d0a', 'UTC', '1', NOW(), NOW());
