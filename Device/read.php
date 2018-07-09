@@ -14,12 +14,17 @@ $coreObj = new Core();
 $database = new Database();
 $db = $database->getConnection();
 $device = new Device($db);
+
+$conditionalArray = [];
+$conditionalArray["id"] = (int) filter_input(INPUT_GET, 'id');
+
 $page = (int) filter_input(INPUT_GET, 'page');
 $rpp = (int) filter_input(INPUT_GET, 'rpp');
+
 $orderByField = (string) filter_input(INPUT_GET, 'orderbyfield');
 $orderBy = (string) filter_input(INPUT_GET, 'orderby');
 $coreObj->setPaging($page, $rpp);
-$stmt = $device->read($coreObj->fromRecordNum, $coreObj->recordsPerPage, $orderByField, $orderBy);
+$stmt = $device->read($conditionalArray, $coreObj->fromRecordNum, $coreObj->recordsPerPage, $orderByField, $orderBy);
 $num = $stmt->rowCount();
 
 $devices_arr = [];
@@ -33,10 +38,21 @@ $devices_arr['paging'] = [
 ];
 
 if ($num > 0) {
+    $currentDateTime = strtotime(gmdate('Y-m-d H:i:s'));
     $devices_arr['message'] = "{$num} " . ($num === 1 ? "device" : "devices") . " found.";
     $devices_arr["records"] = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         extract($row);
+
+        $status = "ONLINE";
+        if (!empty($last_reported_at)) {
+            if (($currentDateTime - strtotime($last_reported_at)) / 3600 >= 24) {
+                $status = "OFFLINE";
+            }
+        } else {
+            $status = "NIL";
+        }
+
         $device_item = [
             "id" => $id,
             "label" => $label,
@@ -44,7 +60,8 @@ if ($num > 0) {
             "modified_at" => $modified_at,
             "last_reported_at" => $last_reported_at,
             "latitude" => $latitude,
-            "longitude" => $longitude
+            "longitude" => $longitude,
+            "status" => $status
         ];
         array_push($devices_arr["records"], $device_item);
     }
