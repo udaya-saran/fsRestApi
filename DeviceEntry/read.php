@@ -17,6 +17,7 @@ $deviceEntry = new DeviceEntry($db);
 
 $conditionalArray = [];
 $conditionalArray["entry_id"] = (int) filter_input(INPUT_GET, 'entry_id');
+$conditionalArray["device_id"] = (int) filter_input(INPUT_GET, 'device_id');
 
 $page = (int) filter_input(INPUT_GET, 'page');
 $rpp = (int) filter_input(INPUT_GET, 'rpp');
