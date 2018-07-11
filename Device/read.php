@@ -20,6 +20,9 @@ $conditionalArray["id"] = (int) filter_input(INPUT_GET, 'id');
 
 $page = (int) filter_input(INPUT_GET, 'page');
 $rpp = (int) filter_input(INPUT_GET, 'rpp');
+$tiZo = (int) filter_input(INPUT_GET, 'tiZo');
+$tiZo = ($tiZo == 0) ? 0 : $tiZo * -1;
+$userTiZo = timezone_name_from_abbr("", (int) $tiZo * 60, false);
 
 $orderByField = (string) filter_input(INPUT_GET, 'orderbyfield');
 $orderBy = (string) filter_input(INPUT_GET, 'orderby');
@@ -34,7 +37,9 @@ $devices_arr['paging'] = [
     'page' => $coreObj->page,
     'rpp' => $coreObj->recordsPerPage,
     'orderbyfield' => $device->order_by_field,
-    'orderby' => $device->order_by
+    'orderby' => $device->order_by,
+    'tiZo' => $tiZo,
+    'timeZone' => $userTiZo
 ];
 
 if ($num > 0) {
@@ -52,6 +57,10 @@ if ($num > 0) {
         } else {
             $status = "NIL";
         }
+
+        $created_at = ($created_at !== null) ? $coreObj->convertUtcToCurrentTz($created_at, $userTiZo) : $created_at;
+        $modified_at = ($modified_at !== null) ? $coreObj->convertUtcToCurrentTz($modified_at, $userTiZo) : $modified_at;
+        $last_reported_at = ($last_reported_at !== null) ? $coreObj->convertUtcToCurrentTz($last_reported_at, $userTiZo) : $last_reported_at;
 
         $device_item = [
             "id" => $id,

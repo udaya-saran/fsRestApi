@@ -21,6 +21,9 @@ $conditionalArray["device_id"] = (int) filter_input(INPUT_GET, 'device_id');
 
 $page = (int) filter_input(INPUT_GET, 'page');
 $rpp = (int) filter_input(INPUT_GET, 'rpp');
+$tiZo = (int) filter_input(INPUT_GET, 'tiZo');
+$tiZo = ($tiZo == 0) ? 0 : $tiZo * -1;
+$userTiZo = timezone_name_from_abbr("", (int) $tiZo * 60, false);
 
 $orderByField = (string) filter_input(INPUT_GET, 'orderbyfield');
 $orderBy = (string) filter_input(INPUT_GET, 'orderby');
@@ -35,7 +38,9 @@ $deviceEntries_arr['paging'] = [
     'page' => $coreObj->page,
     'rpp' => $coreObj->recordsPerPage,
     'orderbyfield' => $deviceEntry->order_by_field,
-    'orderby' => $deviceEntry->order_by
+    'orderby' => $deviceEntry->order_by,
+    'tiZo' => $tiZo,
+    'timeZone' => $userTiZo
 ];
 
 if ($num > 0) {
@@ -44,6 +49,7 @@ if ($num > 0) {
     $deviceEntries_arr["records"] = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         extract($row);
+        $reported_at = ($reported_at !== null) ? $coreObj->convertUtcToCurrentTz($reported_at, $userTiZo) : $reported_at;
         $deviceEntry_item = [
             "entry_id" => $entry_id,
             "device_id" => $device_id,
