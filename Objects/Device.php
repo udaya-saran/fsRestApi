@@ -8,6 +8,7 @@ class Device
     private $conn;
     private $table_name = "device";
     private $fields = ["id", "label", "created_at", "modified_at"];
+    private $where;
     public $order_by_field;
     public $order_by;
 
@@ -21,21 +22,34 @@ class Device
         $this->conn = $db;
     }
 
-    public function read($fromRecordNum = 0, $recordsPerPage = 5, $orderByField = "label", $orderBy = "ASC")
+    public function read($conditionalArray = [], $fromRecordNum = 0, $recordsPerPage = 5, $orderByField = "label", $orderBy = "ASC")
     {
+        $this->where = [];
+        foreach($conditionalArray as $cKey => $cVal) {
+            if (!empty($cVal) && in_array($cKey, $this->fields)) {
+                $this->where[$cKey] = "d.{$cKey} = '{$cVal}'"; 
+            }
+        }
+        $whereClause = "";
+        if (!empty($this->where)) {
+            $whereClause = " WHERE (" . implode(" AND ", $this->where) .") ";
+        }
+        
         $this->order_by = (empty($orderBy) || $orderBy != "DESC") ? 
                 "ASC" : $orderBy;
         $this->order_by_field = (!empty($orderByField)) ? 
                 (in_array($orderByField, $this->fields) ? 
                     "d." . $orderByField : $orderByField) 
                 : "d.label";
+
         $query = "SELECT SQL_CALC_FOUND_ROWS d.id, d.label, "
                 . "d.created_at, d.modified_at, "
                 . "MAX(de.reported_at) as last_reported_at, de.latitude, "
-                . "de.longitude FROM ".$this->table_name." d LEFT JOIN "
-                . "device_entry de ON d.id = de.device_id "
+                . "de.longitude FROM " . $this->table_name . " d LEFT JOIN "
+                . "device_entry de ON d.id = de.device_id " . $whereClause 
                 . "GROUP BY d.id ORDER BY " . $this->order_by_field . " "
                 . $this->order_by . " LIMIT ?, ?";
+        file_put_contents("/tmp/query.log", $query);
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $fromRecordNum, \PDO::PARAM_INT);
         $stmt->bindParam(2, $recordsPerPage, \PDO::PARAM_INT);
