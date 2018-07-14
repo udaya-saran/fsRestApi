@@ -8,7 +8,7 @@ class DeviceEntry
     private $conn;
     private $table_name = "device_entry";
     private $fields = ["entry_id", "device_id", "latitude", "longitude", "reported_at", "label"];
-    private $field_alias = ["de", "de", "de", "de", "de", "d"];
+    private $field_alias = ["de.", "de.", "de.", "de.", "de.", "d."];
     private $where;
     public $order_by_field;
     public $order_by;
@@ -24,12 +24,12 @@ class DeviceEntry
         $this->conn = $db;
     }
 
-    public function read($conditionalArray = [], $fromRecordNum = 0, $recordsPerPage = 5, $orderByField = "label", $orderBy = "ASC")
+    public function read($conditionalArray = [], $fromRecordNum = 0, $recordsPerPage = 5, $orderByField = "reported_at", $orderBy = "DESC")
     {
         $this->where = [];
         foreach($conditionalArray as $cKey => $cVal) {
             if (!empty($cVal) && in_array($cKey, $this->fields)) {
-            $this->where[$cKey] = $this->field_alias[array_search($cKey, $this->fields)] . ".{$cKey} = '{$cVal}'"; 
+            $this->where[$cKey] = $this->field_alias[array_search($cKey, $this->fields)] . "{$cKey} = '{$cVal}'"; 
             }
         }
         $whereClause = "";
@@ -37,12 +37,15 @@ class DeviceEntry
             $whereClause = " WHERE (" . implode(" AND ", $this->where) .") ";
         }
 
-        $this->order_by = (empty($orderBy) || $orderBy != "DESC") ? 
-                "ASC" : $orderBy;
+        $this->order_by = (empty($orderBy) || $orderBy != "ASC") ? 
+                "DESC" : $orderBy;
+        if (!($this->order_by == "ASC" || $this->order_by == "DESC")) {
+            $this->order_by = "DESC";
+        }
         $this->order_by_field = (!empty($orderByField)) ? 
             (in_array($orderByField, $this->fields) ? 
-            $this->field_alias[array_search($orderByField, $this->fields)] . ".{$orderByField}" : $orderByField) 
-            : "d.label";
+            $this->field_alias[array_search($orderByField, $this->fields)] . "{$orderByField}" : $orderByField) 
+            : "de.reported_at";
 
         $query = "SELECT SQL_CALC_FOUND_ROWS de.entry_id, de.device_id, "
                 . "de.latitude, de.longitude, "
@@ -51,7 +54,6 @@ class DeviceEntry
                 . "de.device_id = d.id " . $whereClause 
                 . "ORDER BY " . $this->order_by_field . " "
                 . $this->order_by . " LIMIT ?, ?";
-        file_put_contents("/tmp/query.log", $query);
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(1, $fromRecordNum, \PDO::PARAM_INT);
         $stmt->bindParam(2, $recordsPerPage, \PDO::PARAM_INT);
